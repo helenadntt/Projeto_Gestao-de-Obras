@@ -178,13 +178,13 @@ npm run dev
 
 ### 🎓 Discentes (Desenvolvedores)
 - **Helena Trombetta** — [GitHub](https://github.com/helenadntt)
-- **Vitor Ferraz** — [GitHub](https://github.com/vitorferraz) <!-- Atualize com o link real se houver -->
+- **Vitor Ferraz** — [GitHub](https://github.com/VitorFrraz) 
 
 ### 👨‍🏫 Docentes e Orientadores
 - **Prof. Antônio Junio**
 - **Prof. Jonas Bernardino**
 
-**Contexto Acadêmico:** Projeto Extensionista Interdisciplinar / Desenvolvimento Backend & Full Stack.
+**Contexto Acadêmico:** Projeto Extensionista II / Desenvolvimento Backend & Full Stack.
 
 ---
 
