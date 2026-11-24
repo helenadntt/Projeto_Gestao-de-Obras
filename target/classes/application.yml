@@ -1,0 +1,68 @@
+spring:
+  application:
+    name: gestao-obras-api
+
+  # ─────────────────────────────────────────────
+  # Datasource – PostgreSQL
+  # Valores lidos de variáveis de ambiente.
+  # Os defaults (após ':') servem para desenvolvimento local.
+  # ─────────────────────────────────────────────
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/gestao_obras}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 20000      # ms – tempo máximo aguardando conexão do pool
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000           # ms
+      max-lifetime: 1800000          # ms
+
+  # ─────────────────────────────────────────────
+  # JPA / Hibernate
+  # ddl-auto=validate: Hibernate APENAS valida o schema
+  # contra as entidades; NÃO cria nem altera tabelas.
+  # O Flyway é a única fonte da verdade do schema.
+  # ─────────────────────────────────────────────
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false                  # true em dev se quiser ver o SQL gerado
+    open-in-view: false              # Boa prática: evita lazy-loading fora da transação
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # ─────────────────────────────────────────────
+  # Flyway – Migrations
+  # ─────────────────────────────────────────────
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false       # false = banco deve estar limpo na primeira execução
+    validate-on-migrate: true        # Garante integridade dos checksums das migrations
+    out-of-order: false              # Aplica migrations somente em ordem crescente
+
+# ─────────────────────────────────────────────
+# Servidor HTTP
+# ─────────────────────────────────────────────
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api
+  error:
+    include-message: always          # Inclui a mensagem de erro no payload de resposta
+
+# ─────────────────────────────────────────────
+# Logging
+# ─────────────────────────────────────────────
+logging:
+  level:
+    root: INFO
+    com.gestaoobras.api: DEBUG
+    org.flywaydb: INFO
+    org.hibernate.SQL: WARN         # Mude para DEBUG para ver queries em desenvolvimento
