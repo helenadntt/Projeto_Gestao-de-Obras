@@ -5,30 +5,39 @@
                              https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- ===== Parent Spring Boot ===== -->
+    <!-- ===================================================== -->
+    <!-- Parent Spring Boot                                      -->
+    <!-- ===================================================== -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.4.1</version>
-        <relativePath/>
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <!-- ===== Project Coordinates ===== -->
-    <groupId>com.gestaoobras</groupId>
+    <!-- ===================================================== -->
+    <!-- Coordenadas do Projeto                                  -->
+    <!-- ===================================================== -->
+    <groupId>br.com.gestaoobras</groupId>
     <artifactId>api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>gestao-obras-api</name>
     <description>API RESTful para acompanhamento operacional e financeiro de projetos de construção civil</description>
 
-    <!-- ===== Properties ===== -->
+    <!-- ===================================================== -->
+    <!-- Propriedades                                            -->
+    <!-- ===================================================== -->
     <properties>
         <java.version>21</java.version>
+        <lombok.version>1.18.36</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
-    <!-- ===== Dependencies ===== -->
+    <!-- ===================================================== -->
+    <!-- Dependências                                            -->
+    <!-- ===================================================== -->
     <dependencies>
 
         <!-- Web MVC / REST -->
@@ -55,40 +64,59 @@
             <artifactId>flyway-core</artifactId>
         </dependency>
 
-        <!-- Flyway PostgreSQL support (obrigatório a partir do Flyway 10+) -->
+        <!--
+            Flyway PostgreSQL: a partir do Flyway 10, o suporte a cada
+            banco foi extraído do core em módulos separados. Obrigatório.
+        -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
-        <!-- PostgreSQL JDBC Driver (runtime only) -->
+        <!-- PostgreSQL JDBC Driver — somente em runtime -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Lombok -->
+        <!-- Lombok — processador de anotações; excluído do fat-jar -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
-        <!-- ===== Test ===== -->
+        <!-- Testes -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
+        <!--
+            H2 — banco em memória usado exclusivamente no perfil "test".
+            Permite smoke tests sem dependência de PostgreSQL na CI.
+        -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
-    <!-- ===== Build ===== -->
+    <!-- ===================================================== -->
+    <!-- Build                                                   -->
+    <!-- ===================================================== -->
     <build>
         <plugins>
 
-            <!-- Spring Boot Maven Plugin (exclui Lombok do fat-jar) -->
+            <!--
+                spring-boot-maven-plugin
+                Exclui o Lombok do fat-jar gerado; ele só é necessário
+                em compile-time (annotation processing).
+            -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -102,7 +130,11 @@
                 </configuration>
             </plugin>
 
-            <!-- Maven Compiler Plugin – Habilita annotation processing do Lombok -->
+            <!--
+                maven-compiler-plugin
+                Declara explicitamente o annotation processor do Lombok
+                para garantir compatibilidade com Java 21 e IDEs.
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

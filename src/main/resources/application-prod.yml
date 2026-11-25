@@ -1,0 +1,37 @@
+# =============================================================
+# application-prod.yml — Perfil de Produção
+# Ative via: SPRING_PROFILES_ACTIVE=prod
+# TODAS as propriedades sensíveis devem vir de variáveis de ambiente.
+# Este arquivo NÃO contém credenciais nem valores padrão de prod.
+# =============================================================
+
+spring:
+  datasource:
+    # Em produção, todas as propriedades DEVEM ser fornecidas por
+    # variáveis de ambiente. Não há fallback intencionalmente.
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:20}
+      minimum-idle: ${DB_POOL_MIN:5}
+
+  jpa:
+    show-sql: false   # Nunca exibir SQL em produção
+
+# -----------------------------------------------------------
+# Servidor — porta via variável de ambiente em produção
+# -----------------------------------------------------------
+server:
+  port: ${SERVER_PORT:8080}
+
+# -----------------------------------------------------------
+# Logging enxuto para produção
+# -----------------------------------------------------------
+logging:
+  level:
+    root: WARN
+    br.com.gestaoobras: INFO
+    org.flywaydb: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%X{traceId}] %logger{36} - %msg%n"
