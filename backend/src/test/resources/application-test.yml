@@ -1,0 +1,26 @@
+# =============================================================
+# application-test.yml — Perfil de Testes Automatizados
+# Usa H2 em modo PostgreSQL com Flyway + Hibernate ddl-auto=validate
+# para validar migrations e mapeamento JPA sem depender de banco externo.
+# =============================================================
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:gestao_obras_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  flyway:
+    enabled: true
+    clean-disabled: false
+
+logging:
+  level:
+    root: WARN
+    br.com.gestaoobras: INFO
