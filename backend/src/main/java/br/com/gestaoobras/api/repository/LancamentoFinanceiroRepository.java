@@ -29,6 +29,10 @@ public interface LancamentoFinanceiroRepository
     @EntityGraph(attributePaths = {"obra", "centroCusto"})
     Optional<LancamentoFinanceiro> findWithDetailsById(Long id);
 
+    boolean existsByObraId(Long obraId);
+
+    boolean existsByCentroCustoId(Long centroCustoId);
+
     long countByObraIdAndStatusPagamentoNot(Long obraId, StatusPagamento statusPagamento);
 
     @Query("""
@@ -96,6 +100,15 @@ public interface LancamentoFinanceiroRepository
             GROUP BY l.obra.id
             """)
     List<Object[]> sumDespesasAtivasAgrupadasPorObra();
+
+    @Query("""
+            SELECT l.obra.id, COALESCE(SUM(l.valor), 0)
+            FROM LancamentoFinanceiro l
+            WHERE l.tipo = br.com.gestaoobras.api.domain.enums.TipoLancamento.DESPESA
+              AND l.statusPagamento = br.com.gestaoobras.api.domain.enums.StatusPagamento.PAGO
+            GROUP BY l.obra.id
+            """)
+    List<Object[]> sumDespesasPagasAgrupadasPorObra();
 
     @Modifying
     @Query("UPDATE LancamentoFinanceiro l SET l.centroCusto = NULL WHERE l.centroCusto.id = :centroCustoId")

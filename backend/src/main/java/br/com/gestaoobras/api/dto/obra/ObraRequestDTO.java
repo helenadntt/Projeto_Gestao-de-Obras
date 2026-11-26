@@ -1,6 +1,7 @@
 package br.com.gestaoobras.api.dto.obra;
 
 import br.com.gestaoobras.api.domain.enums.StatusObra;
+import br.com.gestaoobras.api.dto.validation.PeriodoValido;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
@@ -13,6 +14,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+@PeriodoValido
 public record ObraRequestDTO(
         @Schema(example = "Residencial Parque das Flores")
         @NotBlank(message = "O nome da obra é obrigatório.")

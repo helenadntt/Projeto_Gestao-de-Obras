@@ -7,7 +7,6 @@ import br.com.gestaoobras.api.domain.enums.TipoLancamento;
 import br.com.gestaoobras.api.dto.dashboard.AlertaObraDTO;
 import br.com.gestaoobras.api.dto.dashboard.DashboardResumoResponseDTO;
 import br.com.gestaoobras.api.dto.dashboard.GastoPorCentroCustoDTO;
-import br.com.gestaoobras.api.mapper.ObraMapper;
 import br.com.gestaoobras.api.repository.LancamentoFinanceiroRepository;
 import br.com.gestaoobras.api.repository.ObraRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,7 @@ public class DashboardService {
 
     private final ObraRepository obraRepository;
     private final LancamentoFinanceiroRepository lancamentoRepository;
-    private final ObraMapper obraMapper;
+    private final AlertaService alertaService;
 
     @Transactional(readOnly = true)
     public DashboardResumoResponseDTO obterResumoGeral() {
@@ -73,30 +72,12 @@ public class DashboardService {
             despesasPorObra.put((Long) row[0], (BigDecimal) row[1]);
         }
 
-        List<AlertaObraDTO> alertas = obras.stream()
-                .map(obra -> {
-                    boolean atrasada = obraMapper.isAtrasada(obra);
-                    BigDecimal despesasObra = despesasPorObra.getOrDefault(obra.getId(), BigDecimal.ZERO);
-                    BigDecimal orcamento = obra.getOrcamentoPrevisto();
-                    BigDecimal percentual = BigDecimal.ZERO;
-                    if (orcamento.compareTo(BigDecimal.ZERO) > 0) {
-                        percentual = despesasObra
-                                .multiply(BigDecimal.valueOf(100))
-                                .divide(orcamento, 2, RoundingMode.HALF_UP);
-                    }
-                    boolean orcamentoExcedido = despesasObra.compareTo(orcamento) > 0;
-                    return new AlertaObraDTO(
-                            obra.getId(),
-                            obra.getNome(),
-                            obra.getStatus(),
-                            atrasada,
-                            orcamentoExcedido,
-                            percentual,
-                            obra.getPrevisaoFim()
-                    );
-                })
-                .filter(alerta -> alerta.atrasada() || alerta.orcamentoExcedido())
-                .toList();
+        Map<Long, BigDecimal> despesasPagasPorObra = new HashMap<>();
+        for (Object[] row : lancamentoRepository.sumDespesasPagasAgrupadasPorObra()) {
+            despesasPagasPorObra.put((Long) row[0], (BigDecimal) row[1]);
+        }
+
+        List<AlertaObraDTO> alertas = alertaService.gerarAlertas(obras, despesasPorObra, despesasPagasPorObra);
 
         return new DashboardResumoResponseDTO(
                 obras.size(),

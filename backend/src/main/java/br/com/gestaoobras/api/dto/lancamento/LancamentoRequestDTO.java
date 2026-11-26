@@ -2,6 +2,7 @@ package br.com.gestaoobras.api.dto.lancamento;
 
 import br.com.gestaoobras.api.domain.enums.StatusPagamento;
 import br.com.gestaoobras.api.domain.enums.TipoLancamento;
+import br.com.gestaoobras.api.dto.validation.PagamentoValido;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
@@ -12,6 +13,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+@PagamentoValido
 public record LancamentoRequestDTO(
         @Schema(example = "1")
         @NotNull(message = "O identificador da obra é obrigatório.")
