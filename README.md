@@ -96,21 +96,31 @@ Projeto_Gestao-de-Obras/
 
 ## 🚀 Como Executar o Projeto
 
-### Opção 1: Com Docker Compose (Recomendado — sobe tudo em 1 comando)
+### Opção 1: Com Docker Compose via WSL (Recomendado — sobe tudo em 1 comando)
 
-Pré-requisito: **Docker Desktop** em execução.
+Pré-requisito: **WSL 2** (Ubuntu ou outra distro Linux) com **Docker** e **Docker Compose** instalados (seja Docker Engine nativo no WSL ou integração WSL 2 ativada no Docker Desktop).
 
 ```bash
-# 1. (Opcional) Copiar o arquivo de variáveis de ambiente
+# 1. Abra o terminal do WSL e verifique/inicie o serviço do Docker (caso use Docker Engine nativo no WSL)
+sudo service docker start
+
+# 2. Acesse a pasta do projeto (se estiver no disco C: do Windows, ou use o caminho onde clonou no WSL)
+cd /mnt/c/Users/SEU_USUARIO/Documents/ProjetoEXT/Projeto_Gestao-de-Obras
+
+# 3. (Opcional) Copie o arquivo de variáveis de ambiente
 cp .env.example .env
 
-# 2. Subir PostgreSQL + Backend + Frontend
+# 4. Suba PostgreSQL + Backend + Frontend
 docker compose up --build
 ```
 
-> **Dica:** Por padrão no Docker Compose o perfil `dev,demo` vem ativo, populando automaticamente **4 obras e 12 lançamentos de demonstração** caso o banco esteja vazio. Para iniciar com o banco limpo (apenas os 6 centros de custo padrão), defina `SPRING_PROFILES_ACTIVE=dev` no `.env`.
+> **Dicas para WSL 2:**
+> - Para melhor desempenho de build/I/O, recomenda-se clonar o repositório dentro do filesystem nativo do Linux no WSL (ex.: `~/projetos/Projeto_Gestao-de-Obras`) em vez de `/mnt/c/...`.
+> - Caso apareça erro de permissão no socket do Docker (`/var/run/docker.sock`), execute `sudo usermod -aG docker $USER` e reabra o terminal do WSL (ou use `sudo docker compose up --build`).
+> - Para encerrar os containers: `docker compose down` (ou `docker compose down -v` para limpar também o volume do banco).
+> - Por padrão no Docker Compose o perfil `dev,demo` vem ativo, populando automaticamente **4 obras e 12 lançamentos de demonstração** caso o banco esteja vazio. Para iniciar com o banco limpo (apenas os 6 centros de custo padrão), defina `SPRING_PROFILES_ACTIVE=dev` no `.env`.
 
-Endereços após subir:
+Endereços após subir (acessíveis normalmente pelo navegador do Windows via `localhost`):
 - **Frontend Web:** `http://localhost:3000`
 - **API Base URL:** `http://localhost:8080/api`
 - **Swagger UI:** `http://localhost:8080/api/swagger-ui.html`
