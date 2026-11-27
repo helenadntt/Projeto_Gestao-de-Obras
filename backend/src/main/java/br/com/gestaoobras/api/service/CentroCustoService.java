@@ -59,7 +59,11 @@ public class CentroCustoService {
     @Transactional
     public void excluir(Long id) {
         CentroCusto entity = buscarEntidade(id);
-        lancamentoRepository.desvincularCentroCusto(id);
+        if (lancamentoRepository.existsByCentroCustoId(id)) {
+            throw new ConflictException(
+                    "Não é possível excluir o centro de custo pois existem lançamentos financeiros vinculados. Considere inativá-lo."
+            );
+        }
         centroCustoRepository.delete(entity);
     }
 

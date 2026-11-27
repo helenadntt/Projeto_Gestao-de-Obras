@@ -1,0 +1,162 @@
+@baseUrl = http://localhost:8080/api
+
+### Healthcheck
+GET {{baseUrl}}/actuator/health
+
+### =============================================================
+### OBRAS
+### =============================================================
+
+### Listar obras (paginado, máx 100 por página)
+GET {{baseUrl}}/obras?page=0&size=10&sort=createdAt,desc
+
+### Listar obras filtrando por status e busca textual
+GET {{baseUrl}}/obras?status=EM_ANDAMENTO&busca=Parque
+
+### Buscar detalhes de uma obra
+GET {{baseUrl}}/obras/1
+
+### Obter resumo financeiro de uma obra
+GET {{baseUrl}}/obras/1/resumo-financeiro
+
+### Listar lançamentos de uma obra
+GET {{baseUrl}}/obras/1/lancamentos?page=0&size=20
+
+### Cadastrar nova obra
+POST {{baseUrl}}/obras
+Content-Type: application/json
+
+{
+  "nome": "Edifício Comercial Central",
+  "descricao": "Construção de prédio comercial de 4 pavimentos",
+  "cliente": "Grupo Central Ltda",
+  "endereco": "Av. Paulista, 1000 - São Paulo/SP",
+  "responsavel": "Eng. Mariana Oliveira",
+  "orcamentoPrevisto": 500000.00,
+  "dataInicio": "2026-03-01",
+  "previsaoFim": "2026-12-20",
+  "status": "PLANEJAMENTO",
+  "progressoPercentual": 0
+}
+
+### Atualizar obra completa
+PUT {{baseUrl}}/obras/1
+Content-Type: application/json
+
+{
+  "nome": "Edifício Comercial Central - Fase 2",
+  "descricao": "Construção de prédio comercial de 4 pavimentos",
+  "cliente": "Grupo Central Ltda",
+  "endereco": "Av. Paulista, 1000 - São Paulo/SP",
+  "responsavel": "Eng. Mariana Oliveira",
+  "orcamentoPrevisto": 550000.00,
+  "dataInicio": "2026-03-01",
+  "previsaoFim": "2027-01-15",
+  "status": "EM_ANDAMENTO",
+  "progressoPercentual": 35
+}
+
+### Atualizar status e progresso da obra
+PATCH {{baseUrl}}/obras/1/status
+Content-Type: application/json
+
+{
+  "status": "EM_ANDAMENTO",
+  "progressoPercentual": 60
+}
+
+### Excluir obra (retorna 409 se houver lançamentos vinculados)
+DELETE {{baseUrl}}/obras/1
+
+### =============================================================
+### CENTROS DE CUSTO
+### =============================================================
+
+### Listar todos os centros de custo
+GET {{baseUrl}}/centros-custo?apenasAtivos=false
+
+### Buscar centro de custo por ID
+GET {{baseUrl}}/centros-custo/1
+
+### Cadastrar novo centro de custo
+POST {{baseUrl}}/centros-custo
+Content-Type: application/json
+
+{
+  "nome": "Paisagismo",
+  "descricao": "Áreas verdes e jardinagem externa",
+  "ativo": true
+}
+
+### Atualizar / inativar centro de custo
+PUT {{baseUrl}}/centros-custo/1
+Content-Type: application/json
+
+{
+  "nome": "Materiais de Construção",
+  "descricao": "Insumos brutos, acabamentos, ferragens e concreto",
+  "ativo": true
+}
+
+### Excluir centro de custo (retorna 409 se houver lançamentos vinculados)
+DELETE {{baseUrl}}/centros-custo/1
+
+### =============================================================
+### LANÇAMENTOS FINANCEIROS
+### =============================================================
+
+### Listar lançamentos com filtros combináveis
+GET {{baseUrl}}/lancamentos?obraId=1&tipo=DESPESA&statusPagamento=PENDENTE&page=0&size=20
+
+### Buscar lançamento por ID
+GET {{baseUrl}}/lancamentos/1
+
+### Cadastrar lançamento financeiro
+POST {{baseUrl}}/lancamentos
+Content-Type: application/json
+
+{
+  "obraId": 1,
+  "centroCustoId": 1,
+  "descricao": "Compra de 50 sacos de cimento CP-II",
+  "tipo": "DESPESA",
+  "valor": 2450.50,
+  "dataCompetencia": "2026-05-10",
+  "dataPagamento": "2026-05-12",
+  "statusPagamento": "PAGO",
+  "comprovanteUrl": "https://storage.exemplo.com/nf-1042.pdf",
+  "observacoes": "Fornecedor ConstruMais"
+}
+
+### Atualizar lançamento financeiro
+PUT {{baseUrl}}/lancamentos/1
+Content-Type: application/json
+
+{
+  "obraId": 1,
+  "centroCustoId": 1,
+  "descricao": "Compra de 60 sacos de cimento CP-II",
+  "tipo": "DESPESA",
+  "valor": 2900.00,
+  "dataCompetencia": "2026-05-10",
+  "statusPagamento": "PENDENTE"
+}
+
+### Marcar lançamento como PAGO (ou reverter para PENDENTE)
+PATCH {{baseUrl}}/lancamentos/1/pagamento
+Content-Type: application/json
+
+{
+  "statusPagamento": "PAGO",
+  "dataPagamento": "2026-05-15"
+}
+
+### Excluir lançamento financeiro
+DELETE {{baseUrl}}/lancamentos/1
+
+### =============================================================
+### DASHBOARD
+### =============================================================
+
+### Obter resumo consolidado e alertas
+GET {{baseUrl}}/dashboard/resumo

@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -200,5 +201,100 @@ class LancamentoFinanceiroControllerIntegrationTest {
                 .andExpect(jsonPath("$.alertasObras[0].atrasada", is(true)))
                 .andExpect(jsonPath("$.alertasObras[0].orcamentoExcedido", is(true)))
                 .andExpect(jsonPath("$.alertasObras[0].percentualOrcamentoUtilizado", is(125.00)));
+    }
+
+    @Test
+    void deveRetornar409AoCriarOuEditarLancamentoEmObraCanceladaOuCentroInativo() throws Exception {
+        Obra obraCancelada = obraRepository.save(Obra.builder()
+                .nome("Obra Cancelada")
+                .endereco("Rua D, 400")
+                .responsavel("Eng. Marcos")
+                .orcamentoPrevisto(new BigDecimal("30000.00"))
+                .dataInicio(LocalDate.now().minusDays(10))
+                .previsaoFim(LocalDate.now().plusDays(20))
+                .status(StatusObra.CANCELADA)
+                .progressoPercentual(0)
+                .build());
+
+        CentroCusto centroInativo = centroCustoRepository.save(CentroCusto.builder()
+                .nome("Centro Inativo Teste")
+                .ativo(false)
+                .build());
+
+        // Criar lançamento em obra cancelada -> 409
+        LancamentoRequestDTO emObraCancelada = new LancamentoRequestDTO(
+                obraCancelada.getId(),
+                centroCusto.getId(),
+                "Tentativa em obra cancelada",
+                TipoLancamento.DESPESA,
+                new BigDecimal("100.00"),
+                LocalDate.now(),
+                null,
+                StatusPagamento.PENDENTE,
+                null,
+                null
+        );
+
+        mockMvc.perform(post("/lancamentos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(emObraCancelada)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status", is(409)));
+
+        // Criar lançamento em centro inativo -> 409
+        LancamentoRequestDTO emCentroInativo = new LancamentoRequestDTO(
+                obra.getId(),
+                centroInativo.getId(),
+                "Tentativa em centro inativo",
+                TipoLancamento.DESPESA,
+                new BigDecimal("100.00"),
+                LocalDate.now(),
+                null,
+                StatusPagamento.PENDENTE,
+                null,
+                null
+        );
+
+        mockMvc.perform(post("/lancamentos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(emCentroInativo)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status", is(409)));
+
+        // Criar lançamento válido e tentar editar movendo para obra cancelada -> 409
+        LancamentoRequestDTO valido = new LancamentoRequestDTO(
+                obra.getId(),
+                centroCusto.getId(),
+                "Lançamento válido",
+                TipoLancamento.DESPESA,
+                new BigDecimal("500.00"),
+                LocalDate.now(),
+                null,
+                StatusPagamento.PENDENTE,
+                null,
+                null
+        );
+
+        String criadoJson = mockMvc.perform(post("/lancamentos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(valido)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Long lancamentoId = objectMapper.readTree(criadoJson).get("id").asLong();
+
+        mockMvc.perform(put("/lancamentos/{id}", lancamentoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(emObraCancelada)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status", is(409)));
+
+        mockMvc.perform(put("/lancamentos/{id}", lancamentoId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(emCentroInativo)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status", is(409)));
     }
 }

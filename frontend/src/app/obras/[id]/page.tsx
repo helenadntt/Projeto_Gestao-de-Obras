@@ -29,7 +29,7 @@ import {
   formatPercent,
   STATUS_OBRA_LABELS,
 } from "@/lib/format";
-import { api } from "@/services/api";
+import { api, ApiClientError } from "@/services/api";
 import type {
   CentroCustoResponse,
   LancamentoResponse,
@@ -122,18 +122,18 @@ export default function ObraDetalhePage() {
 
   async function handleExcluirObra() {
     if (!detalhe) return;
-    if (
-      !window.confirm(
-        `Excluir a obra "${detalhe.obra.nome}" e todos os seus lançamentos?`
-      )
-    ) {
+    if (!window.confirm(`Excluir a obra "${detalhe.obra.nome}"?`)) {
       return;
     }
     try {
       await api.obras.excluir(obraId);
       router.push("/obras");
-    } catch {
-      setError("Erro ao excluir obra.");
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setError(err.message);
+      } else {
+        setError("Erro ao excluir obra.");
+      }
     }
   }
 

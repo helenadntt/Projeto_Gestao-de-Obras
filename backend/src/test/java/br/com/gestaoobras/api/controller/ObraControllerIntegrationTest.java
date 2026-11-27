@@ -1,6 +1,10 @@
 package br.com.gestaoobras.api.controller;
 
+import br.com.gestaoobras.api.domain.entity.LancamentoFinanceiro;
+import br.com.gestaoobras.api.domain.entity.Obra;
 import br.com.gestaoobras.api.domain.enums.StatusObra;
+import br.com.gestaoobras.api.domain.enums.StatusPagamento;
+import br.com.gestaoobras.api.domain.enums.TipoLancamento;
 import br.com.gestaoobras.api.dto.obra.ObraRequestDTO;
 import br.com.gestaoobras.api.dto.obra.ObraStatusUpdateDTO;
 import br.com.gestaoobras.api.repository.LancamentoFinanceiroRepository;
@@ -143,7 +147,7 @@ class ObraControllerIntegrationTest {
     }
 
     @Test
-    void deveRetornar422QuandoPrevisaoFimForAnteriorADataInicio() throws Exception {
+    void deveRetornar400QuandoPrevisaoFimForAnteriorADataInicio() throws Exception {
         ObraRequestDTO invalida = new ObraRequestDTO(
                 "Obra Datas Inválidas",
                 null,
@@ -161,8 +165,9 @@ class ObraControllerIntegrationTest {
         mockMvc.perform(post("/obras")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalida)))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.status", is(422)));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.fieldErrors[0].field", is("previsaoFim")));
     }
 
     @Test
@@ -187,5 +192,36 @@ class ObraControllerIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.fieldErrors", notNullValue()));
+    }
+
+    @Test
+    void deveRetornar409AoExcluirObraComLancamentos() throws Exception {
+        Obra obraComLancamento = obraRepository.save(Obra.builder()
+                .nome("Obra Protegida")
+                .endereco("Rua B, 200")
+                .responsavel("Eng. Lucas")
+                .orcamentoPrevisto(new BigDecimal("50000.00"))
+                .dataInicio(LocalDate.now().minusDays(5))
+                .previsaoFim(LocalDate.now().plusDays(30))
+                .status(StatusObra.EM_ANDAMENTO)
+                .progressoPercentual(10)
+                .build());
+
+        lancamentoRepository.save(LancamentoFinanceiro.builder()
+                .obra(obraComLancamento)
+                .descricao("Compra inicial")
+                .tipo(TipoLancamento.DESPESA)
+                .valor(new BigDecimal("1000.00"))
+                .dataCompetencia(LocalDate.now())
+                .statusPagamento(StatusPagamento.PENDENTE)
+                .build());
+
+        mockMvc.perform(delete("/obras/{id}", obraComLancamento.getId()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status", is(409)));
+
+        // Confirma que a obra e o lançamento continuam existindo
+        mockMvc.perform(get("/obras/{id}", obraComLancamento.getId()))
+                .andExpect(status().isOk());
     }
 }

@@ -11,6 +11,7 @@ import br.com.gestaoobras.api.dto.obra.ObraResponseDTO;
 import br.com.gestaoobras.api.dto.obra.ObraStatusUpdateDTO;
 import br.com.gestaoobras.api.dto.obra.ResumoFinanceiroObraDTO;
 import br.com.gestaoobras.api.exception.BusinessRuleException;
+import br.com.gestaoobras.api.exception.ConflictException;
 import br.com.gestaoobras.api.exception.ResourceNotFoundException;
 import br.com.gestaoobras.api.mapper.ObraMapper;
 import br.com.gestaoobras.api.repository.LancamentoFinanceiroRepository;
@@ -115,6 +116,11 @@ public class ObraService {
     @Transactional
     public void excluir(Long id) {
         Obra obra = buscarEntidade(id);
+        if (lancamentoRepository.existsByObraId(id)) {
+            throw new ConflictException(
+                    "Não é possível excluir a obra pois existem lançamentos financeiros vinculados a ela."
+            );
+        }
         obraRepository.delete(obra);
     }
 

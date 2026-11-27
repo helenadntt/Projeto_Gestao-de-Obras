@@ -40,6 +40,12 @@ spring:
     validate-on-migrate: true
     out-of-order: false
 
+  data:
+    web:
+      pageable:
+        default-page-size: 20
+        max-page-size: 100
+
   jackson:
     serialization:
       write-dates-as-timestamps: false
@@ -77,6 +83,10 @@ springdoc:
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+  alertas:
+    dias-prazo-proximo: 7
+    percentual-orcamento-risco: 80
+    diferenca-avanco: 20
 
 logging:
   level:

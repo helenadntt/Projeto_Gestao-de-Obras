@@ -85,18 +85,18 @@ export default function CentrosCustoPage() {
   }
 
   async function handleDelete(cc: CentroCustoResponse) {
-    if (
-      !window.confirm(
-        `Excluir o centro de custo "${cc.nome}"? Os lançamentos financeiros já registrados serão preservados.`
-      )
-    ) {
+    if (!window.confirm(`Excluir o centro de custo "${cc.nome}"?`)) {
       return;
     }
     try {
       await api.centrosCusto.excluir(cc.id);
       carregar();
-    } catch {
-      setError("Erro ao excluir centro de custo.");
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setError(err.message);
+      } else {
+        setError("Erro ao excluir centro de custo.");
+      }
     }
   }
 

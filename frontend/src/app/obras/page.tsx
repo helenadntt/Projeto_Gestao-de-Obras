@@ -26,7 +26,7 @@ import {
   formatDate,
   STATUS_OBRA_LABELS,
 } from "@/lib/format";
-import { api } from "@/services/api";
+import { api, ApiClientError } from "@/services/api";
 import type { ObraResponse, PageResponse, StatusObra } from "@/types/api";
 
 export default function ObrasPage() {
@@ -63,18 +63,18 @@ export default function ObrasPage() {
   }, [carregar]);
 
   async function handleDelete(obra: ObraResponse) {
-    if (
-      !window.confirm(
-        `Deseja excluir a obra "${obra.nome}"? Todos os lançamentos financeiros vinculados também serão removidos.`
-      )
-    ) {
+    if (!window.confirm(`Deseja excluir a obra "${obra.nome}"?`)) {
       return;
     }
     try {
       await api.obras.excluir(obra.id);
       carregar();
-    } catch {
-      setError("Erro ao excluir a obra.");
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setError(err.message);
+      } else {
+        setError("Erro ao excluir a obra.");
+      }
     }
   }
 

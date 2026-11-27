@@ -3,12 +3,14 @@ package br.com.gestaoobras.api.service;
 import br.com.gestaoobras.api.domain.entity.CentroCusto;
 import br.com.gestaoobras.api.domain.entity.LancamentoFinanceiro;
 import br.com.gestaoobras.api.domain.entity.Obra;
+import br.com.gestaoobras.api.domain.enums.StatusObra;
 import br.com.gestaoobras.api.domain.enums.StatusPagamento;
 import br.com.gestaoobras.api.domain.enums.TipoLancamento;
 import br.com.gestaoobras.api.dto.lancamento.LancamentoPagamentoUpdateDTO;
 import br.com.gestaoobras.api.dto.lancamento.LancamentoRequestDTO;
 import br.com.gestaoobras.api.dto.lancamento.LancamentoResponseDTO;
 import br.com.gestaoobras.api.exception.BusinessRuleException;
+import br.com.gestaoobras.api.exception.ConflictException;
 import br.com.gestaoobras.api.exception.ResourceNotFoundException;
 import br.com.gestaoobras.api.mapper.LancamentoMapper;
 import br.com.gestaoobras.api.repository.LancamentoFinanceiroRepository;
@@ -94,6 +96,7 @@ public class LancamentoFinanceiroService {
     @Transactional
     public LancamentoResponseDTO criar(LancamentoRequestDTO dto) {
         Obra obra = obraService.buscarEntidade(dto.obraId());
+        validarObraAceitaLancamentos(obra);
         CentroCusto centroCusto = resolverCentroCusto(dto.centroCustoId(), true);
 
         LancamentoFinanceiro entity = mapper.toEntity(dto, obra, centroCusto);
@@ -106,10 +109,12 @@ public class LancamentoFinanceiroService {
     @Transactional
     public LancamentoResponseDTO atualizar(Long id, LancamentoRequestDTO dto) {
         LancamentoFinanceiro entity = buscarEntidadeComDetalhes(id);
+        validarObraAceitaLancamentos(entity.getObra());
+
         Obra obra = obraService.buscarEntidade(dto.obraId());
-        boolean centroCustoAlterado = dto.centroCustoId() != null
-                && (entity.getCentroCusto() == null || !dto.centroCustoId().equals(entity.getCentroCusto().getId()));
-        CentroCusto centroCusto = resolverCentroCusto(dto.centroCustoId(), centroCustoAlterado);
+        validarObraAceitaLancamentos(obra);
+
+        CentroCusto centroCusto = resolverCentroCusto(dto.centroCustoId(), true);
 
         mapper.updateEntity(entity, dto, obra, centroCusto);
         ajustarDataEStatusPagamento(entity);
@@ -132,13 +137,21 @@ public class LancamentoFinanceiroService {
         lancamentoRepository.delete(entity);
     }
 
+    private void validarObraAceitaLancamentos(Obra obra) {
+        if (obra.getStatus() == StatusObra.CANCELADA) {
+            throw new ConflictException(
+                    "Não é possível registrar ou editar lançamentos financeiros em uma obra cancelada."
+            );
+        }
+    }
+
     private CentroCusto resolverCentroCusto(Long centroCustoId, boolean exigirAtivo) {
         if (centroCustoId == null) {
             return null;
         }
         CentroCusto centroCusto = centroCustoService.buscarEntidade(centroCustoId);
         if (exigirAtivo && Boolean.FALSE.equals(centroCusto.getAtivo())) {
-            throw new BusinessRuleException(
+            throw new ConflictException(
                     "Não é possível vincular um lançamento ao centro de custo inativo: " + centroCusto.getNome()
             );
         }
