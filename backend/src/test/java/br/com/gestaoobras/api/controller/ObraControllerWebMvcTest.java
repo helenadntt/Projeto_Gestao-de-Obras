@@ -1,5 +1,6 @@
 package br.com.gestaoobras.api.controller;
 
+import br.com.gestaoobras.api.config.PageableConfig;
 import br.com.gestaoobras.api.dto.obra.ObraRequestDTO;
 import br.com.gestaoobras.api.service.LancamentoFinanceiroService;
 import br.com.gestaoobras.api.service.ObraService;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.web.SpringDataWebAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -31,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ObraController.class)
 @ImportAutoConfiguration(SpringDataWebAutoConfiguration.class)
+@Import(PageableConfig.class)
 class ObraControllerWebMvcTest {
 
     @Autowired

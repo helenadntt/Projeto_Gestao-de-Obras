@@ -15,6 +15,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -56,6 +58,29 @@ class GlobalExceptionHandlerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.message", containsString("malformado")));
+    }
+
+    @Test
+    void deveRetornar400QuandoValidacaoDeCamposFalhar() throws Exception {
+        String jsonComCamposInvalidos = """
+                {
+                  "nome": "",
+                  "endereco": "",
+                  "responsavel": "",
+                  "orcamentoPrevisto": -10.00,
+                  "dataInicio": "2026-01-01",
+                  "previsaoFim": "2026-12-01"
+                }
+                """;
+
+        mockMvc.perform(post("/obras")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonComCamposInvalidos))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.message", is("Erro de validação nos dados enviados.")))
+                .andExpect(jsonPath("$.fieldErrors", notNullValue()))
+                .andExpect(jsonPath("$.fieldErrors.length()", greaterThan(0)));
     }
 
     @Test
